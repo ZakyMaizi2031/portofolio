@@ -364,6 +364,116 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
+.edit-course-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.edit-course-btn:hover {
+  color: var(--primary);
+  background: rgba(0, 242, 254, 0.1);
+}
+
+/* Edit mode row */
+.course-item-row.editing {
+  background: rgba(0, 242, 254, 0.04);
+  border-color: rgba(0, 242, 254, 0.2);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.edit-input {
+  background: rgba(31, 34, 41, 0.9);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  width: 100%;
+}
+
+.edit-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.15);
+}
+
+.edit-selects {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-select {
+  background: rgba(31, 34, 41, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+  flex: 1;
+  min-width: 80px;
+}
+
+.edit-select:focus {
+  border-color: var(--primary);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.edit-save-btn {
+  background: rgba(0, 242, 254, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.edit-save-btn:hover {
+  background: rgba(0, 242, 254, 0.2);
+}
+
+.edit-cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.edit-cancel-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
 /* Right visuals section */
 .calculator-visuals-section {
   display: flex;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, RefreshCw, BarChart2, Star, Sparkles, BookOpen } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, BarChart2, Star, Sparkles, BookOpen, Pencil, Check, X } from 'lucide-react';
 import './GradeCalculator.css';
 
 const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
@@ -60,6 +60,29 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus semua mata kuliah yang tersimpan?')) {
       setCourses([]);
     }
+  };
+
+  // --- Edit Mode State ---
+  const [editingId, setEditingId] = useState(null);
+  const [editData, setEditData] = useState({});
+
+  const handleStartEdit = (course) => {
+    setEditingId(course.id);
+    setEditData({ name: course.name, sks: course.sks, grade: course.grade, category: course.category });
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveEdit = (id) => {
+    setCourses(courses.map(c => c.id === id ? { ...c, ...editData, sks: parseInt(editData.sks) } : c));
+    setEditingId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditData({});
   };
 
   // Group courses by semester
@@ -211,25 +234,72 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
                         <span className="semester-ips">IPS: {ips.toFixed(2)}</span>
                       </div>
                       {semCourses.map((course) => (
-                        <div key={course.id} className="course-item-row">
-                          <div className="course-info">
-                            <span className="course-title">{course.name}</span>
-                            <div className="course-meta">
-                              <span className="meta-badge category">{course.category}</span>
-                              <span className="meta-badge sks">{course.sks} SKS</span>
+                        editingId === course.id ? (
+                          // EDIT MODE
+                          <div key={course.id} className="course-item-row editing">
+                            <div className="edit-fields">
+                              <input
+                                className="edit-input"
+                                type="text"
+                                value={editData.name}
+                                onChange={(e) => handleEditChange('name', e.target.value)}
+                                placeholder="Nama Mata Kuliah"
+                              />
+                              <div className="edit-selects">
+                                <select className="edit-select" value={editData.sks} onChange={(e) => handleEditChange('sks', e.target.value)}>
+                                  {[1,2,3,4,5,6].map(s => <option key={s} value={s}>{s} SKS</option>)}
+                                </select>
+                                <select className="edit-select" value={editData.grade} onChange={(e) => handleEditChange('grade', e.target.value)}>
+                                  {Object.keys(gradeValues).map(g => <option key={g} value={g}>{g}</option>)}
+                                </select>
+                                <select className="edit-select" value={editData.category} onChange={(e) => handleEditChange('category', e.target.value)}>
+                                  <option value="UI/UX & Frontend">UI/UX & FE</option>
+                                  <option value="Backend & Infrastructure">Backend</option>
+                                  <option value="Data Science & AI">Data & AI</option>
+                                  <option value="Logic & Algorithms">Logic</option>
+                                  <option value="Projek Capstone (Semua IT)">Capstone</option>
+                                  <option value="Lainnya / Umum">Lainnya</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="edit-actions">
+                              <button onClick={() => handleSaveEdit(course.id)} className="edit-save-btn" title="Simpan">
+                                <Check size={16} />
+                              </button>
+                              <button onClick={handleCancelEdit} className="edit-cancel-btn" title="Batal">
+                                <X size={16} />
+                              </button>
                             </div>
                           </div>
-                          <div className="course-grade-actions">
-                            <span className={`grade-badge ${course.grade.charAt(0)}`}>{course.grade}</span>
-                            <button 
-                              onClick={() => handleDeleteCourse(course.id)} 
-                              className="delete-course-btn"
-                              title="Hapus"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                        ) : (
+                          // VIEW MODE
+                          <div key={course.id} className="course-item-row">
+                            <div className="course-info">
+                              <span className="course-title">{course.name}</span>
+                              <div className="course-meta">
+                                <span className="meta-badge category">{course.category}</span>
+                                <span className="meta-badge sks">{course.sks} SKS</span>
+                              </div>
+                            </div>
+                            <div className="course-grade-actions">
+                              <span className={`grade-badge ${course.grade.charAt(0)}`}>{course.grade}</span>
+                              <button
+                                onClick={() => handleStartEdit(course)}
+                                className="edit-course-btn"
+                                title="Edit"
+                              >
+                                <Pencil size={15} />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteCourse(course.id)} 
+                                className="delete-course-btn"
+                                title="Hapus"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        )
                       ))}
                     </div>
                   );
