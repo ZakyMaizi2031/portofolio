@@ -5,20 +5,6 @@ import GradeCalculator from './components/GradeCalculator';
 import CvBuilder from './components/CvBuilder';
 import './App.css';
 
-const gradeValues = {
-  'A': 4.0,
-  'A-': 3.7,
-  'B+': 3.5,
-  'B': 3.0,
-  'B-': 2.7,
-  'C+': 2.5,
-  'C': 2.0,
-  'D': 1.0,
-  'E': 0.0
-};
-
-const defaultCourses = [];
-
 const defaultCvData = {
   name: 'Muhammad Zaky Maizi',
   title: 'Fullstack Developer & UI/UX Designer',
@@ -34,129 +20,115 @@ const defaultCvData = {
   projects: []
 };
 
+// Default: array of semester records { id, number, ips, totalSks }
+const defaultSemesters = [];
+
+// Default: manual skill percentages (0–100)
+const defaultSkillPercentages = {
+  'UI/UX & Frontend': 0,
+  'Backend & Infrastructure': 0,
+  'Data Science & AI': 0,
+  'Logic & Algorithms': 0
+};
+
 function App() {
   const [activeTab, setActiveTab] = useState('home');
 
-  // Load initial states from LocalStorage or fallback to default
-  const [courses, setCourses] = useState(() => {
-    const saved = localStorage.getItem('porto_courses_v3');
+  // --- Semesters state ---
+  const [semesters, setSemesters] = useState(() => {
+    const saved = localStorage.getItem('porto_semesters_v1');
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing courses from localStorage', e);
-      }
+      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
     }
-    return defaultCourses;
+    return defaultSemesters;
   });
 
+  // --- Manual skill percentages state ---
+  const [skillPercentages, setSkillPercentages] = useState(() => {
+    const saved = localStorage.getItem('porto_skills_v1');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+    }
+    return defaultSkillPercentages;
+  });
+
+  // --- CV state ---
   const [cvData, setCvData] = useState(() => {
     const saved = localStorage.getItem('porto_cv_v3');
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing CV from localStorage', e);
-      }
+      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
     }
     return defaultCvData;
   });
 
-  // Save updates to localStorage reactively
+  // --- Persist to localStorage ---
   useEffect(() => {
-    localStorage.setItem('porto_courses_v3', JSON.stringify(courses));
-  }, [courses]);
+    localStorage.setItem('porto_semesters_v1', JSON.stringify(semesters));
+  }, [semesters]);
+
+  useEffect(() => {
+    localStorage.setItem('porto_skills_v1', JSON.stringify(skillPercentages));
+  }, [skillPercentages]);
 
   useEffect(() => {
     localStorage.setItem('porto_cv_v3', JSON.stringify(cvData));
   }, [cvData]);
 
-  // Calculate Cumulative GPA (IPK)
+  // --- IPK = Σ(IPS × TotalSKS) / Σ(TotalSKS) ---
   const gpa = useMemo(() => {
-    if (courses.length === 0) return 0.0;
+    if (semesters.length === 0) return 0.0;
     let totalPoints = 0;
     let totalSks = 0;
-    courses.forEach(c => {
-      const gradeVal = gradeValues[c.grade] ?? 0.0;
-      totalPoints += gradeVal * c.sks;
-      totalSks += c.sks;
+    semesters.forEach(s => {
+      totalPoints += parseFloat(s.ips) * parseInt(s.totalSks);
+      totalSks += parseInt(s.totalSks);
     });
     return totalSks > 0 ? (totalPoints / totalSks) : 0.0;
-  }, [courses]);
+  }, [semesters]);
 
-  // Calculate Competency Scores per Category
+  // --- Skills from manual percentages ---
   const skills = useMemo(() => {
-    const categories = [
-      'UI/UX & Frontend',
-      'Backend & Infrastructure',
-      'Data Science & AI',
-      'Logic & Algorithms'
-    ];
-
-    return categories.map(cat => {
-      const catCourses = courses.filter(c => 
-        c.category === cat || c.category === 'Projek Capstone (Semua IT)'
-      );
-      if (catCourses.length === 0) {
-        return { name: cat, score: 0, gpaAverage: 0, courses: [] };
-      }
-
-      let totalPoints = 0;
-      let totalSks = 0;
-      catCourses.forEach(c => {
-        const gradeVal = gradeValues[c.grade] ?? 0.0;
-        totalPoints += gradeVal * c.sks;
-        totalSks += c.sks;
-      });
-
-      const avgGpa = totalSks > 0 ? (totalPoints / totalSks) : 0.0;
-      // Convert 0.0 - 4.0 GPA range to percentage (0% - 100%)
-      const scorePercentage = (avgGpa / 4.0) * 100;
-
-      return {
-        name: cat,
-        score: scorePercentage,
-        gpaAverage: avgGpa,
-        courses: catCourses.map(c => c.name)
-      };
-    });
-  }, [courses]);
+    return Object.entries(skillPercentages).map(([name, score]) => ({
+      name,
+      score,
+      gpaAverage: (score / 100) * 4.0,
+      courses: []
+    }));
+  }, [skillPercentages]);
 
   return (
     <div className="app-container">
-      {/* Navbar floating at the top */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      {/* Background glowing shape blurs */}
       <div className="blob blob-primary no-print"></div>
       <div className="blob blob-secondary no-print"></div>
 
-      {/* Main Dynamic View Area */}
       <main className="main-content">
         {activeTab === 'home' && (
-          <Home 
-            setActiveTab={setActiveTab} 
-            gpa={gpa} 
-            skills={skills} 
-            cvData={cvData} 
+          <Home
+            setActiveTab={setActiveTab}
+            gpa={gpa}
+            skills={skills}
+            cvData={cvData}
           />
         )}
-        
+
         {activeTab === 'calculator' && (
-          <GradeCalculator 
-            courses={courses} 
-            setCourses={setCourses} 
-            gpa={gpa} 
-            skills={skills} 
+          <GradeCalculator
+            semesters={semesters}
+            setSemesters={setSemesters}
+            skillPercentages={skillPercentages}
+            setSkillPercentages={setSkillPercentages}
+            gpa={gpa}
+            skills={skills}
           />
         )}
-        
+
         {activeTab === 'cv' && (
-          <CvBuilder 
-            cvData={cvData} 
-            setCvData={setCvData} 
-            gpa={gpa} 
-            skills={skills} 
+          <CvBuilder
+            cvData={cvData}
+            setCvData={setCvData}
+            gpa={gpa}
+            skills={skills}
           />
         )}
       </main>

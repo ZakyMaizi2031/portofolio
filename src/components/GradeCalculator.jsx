@@ -1,318 +1,221 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, RefreshCw, BarChart2, Star, Sparkles, BookOpen, Pencil, Check, X } from 'lucide-react';
+import { Plus, Trash2, Sparkles, BarChart2, BookOpen, Pencil, Check, X } from 'lucide-react';
 import './GradeCalculator.css';
 
-const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
-  const [activeSemester, setActiveSemester] = useState('1');
-  const [draftCourses, setDraftCourses] = useState([
-    { tempId: Date.now(), name: '', sks: 3, grade: 'A', category: 'UI/UX & Frontend' }
-  ]);
+const SKILL_CATEGORIES = [
+  { key: 'UI/UX & Frontend', label: 'UI/UX & Frontend', color: '#00f2fe' },
+  { key: 'Backend & Infrastructure', label: 'Backend & Infrastructure', color: '#4facfe' },
+  { key: 'Data Science & AI', label: 'Data Science & AI', color: '#a18cd1' },
+  { key: 'Logic & Algorithms', label: 'Logic & Algorithms', color: '#fbc2eb' },
+];
 
-  const gradeValues = {
-    'A': 4.00, 'A-': 3.75, 'B+': 3.50, 'B': 3.00, 'B-': 2.75,
-    'C+': 2.50, 'C': 2.00, 'D': 1.00, 'E': 0.00
-  };
+const GradeCalculator = ({
+  semesters, setSemesters,
+  skillPercentages, setSkillPercentages,
+  gpa, skills
+}) => {
 
-  const handleAddDraftRow = () => {
-    setDraftCourses([...draftCourses, { tempId: Date.now(), name: '', sks: 3, grade: 'A', category: 'UI/UX & Frontend' }]);
-  };
+  // --- Draft state for adding new semester ---
+  const [draftNumber, setDraftNumber] = useState('');
+  const [draftIps, setDraftIps] = useState('');
+  const [draftSks, setDraftSks] = useState('');
 
-  const handleDraftChange = (id, field, value) => {
-    setDraftCourses(draftCourses.map(c => c.tempId === id ? { ...c, [field]: value } : c));
-  };
-
-  const handleRemoveDraftRow = (id) => {
-    if (draftCourses.length > 1) {
-      setDraftCourses(draftCourses.filter(c => c.tempId !== id));
-    }
-  };
-
-  const handleSaveSemester = () => {
-    const validCourses = draftCourses.filter(c => c.name.trim() !== '');
-    if (validCourses.length === 0) {
-      alert("Harap isi nama mata kuliah sebelum menyimpan.");
-      return;
-    }
-
-    const newCourses = validCourses.map((c, index) => ({
-      id: Date.now() + index,
-      name: c.name.trim(),
-      sks: parseInt(c.sks),
-      grade: c.grade,
-      category: c.category,
-      semester: activeSemester
-    }));
-
-    setCourses([...courses, ...newCourses]);
-    setDraftCourses([{ tempId: Date.now(), name: '', sks: 3, grade: 'A', category: 'UI/UX & Frontend' }]);
-    
-    const nextSem = parseInt(activeSemester) + 1;
-    if (nextSem <= 8) {
-      setActiveSemester(nextSem.toString());
-    }
-  };
-
-  const handleDeleteCourse = (id) => {
-    setCourses(courses.filter(course => course.id !== id));
-  };
-
-  const handleReset = () => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus semua mata kuliah yang tersimpan?')) {
-      setCourses([]);
-    }
-  };
-
-  // --- Edit Mode State ---
+  // --- Edit state ---
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
 
-  const handleStartEdit = (course) => {
-    setEditingId(course.id);
-    setEditData({ name: course.name, sks: course.sks, grade: course.grade, category: course.category });
+  const handleAddSemester = () => {
+    const num = draftNumber.trim();
+    const ips = parseFloat(draftIps);
+    const sks = parseInt(draftSks);
+
+    if (!num) { alert('Masukkan nomor semester.'); return; }
+    if (isNaN(ips) || ips < 0 || ips > 4) { alert('IPS harus antara 0.00 – 4.00.'); return; }
+    if (isNaN(sks) || sks <= 0) { alert('Total SKS harus diisi.'); return; }
+
+    const existing = semesters.find(s => s.number === num);
+    if (existing) { alert(`Semester ${num} sudah ada. Edit data yang sudah ada.`); return; }
+
+    const newSem = { id: Date.now(), number: num, ips: ips.toFixed(2), totalSks: sks };
+    const sorted = [...semesters, newSem].sort((a, b) => parseInt(a.number) - parseInt(b.number));
+    setSemesters(sorted);
+    setDraftNumber('');
+    setDraftIps('');
+    setDraftSks('');
   };
 
-  const handleEditChange = (field, value) => {
-    setEditData(prev => ({ ...prev, [field]: value }));
+  const handleDeleteSemester = (id) => {
+    setSemesters(semesters.filter(s => s.id !== id));
+  };
+
+  const handleStartEdit = (sem) => {
+    setEditingId(sem.id);
+    setEditData({ number: sem.number, ips: sem.ips, totalSks: sem.totalSks });
   };
 
   const handleSaveEdit = (id) => {
-    setCourses(courses.map(c => c.id === id ? { ...c, ...editData, sks: parseInt(editData.sks) } : c));
+    const ips = parseFloat(editData.ips);
+    const sks = parseInt(editData.totalSks);
+    if (isNaN(ips) || ips < 0 || ips > 4) { alert('IPS harus antara 0.00 – 4.00.'); return; }
+    if (isNaN(sks) || sks <= 0) { alert('Total SKS tidak valid.'); return; }
+    const updated = semesters.map(s =>
+      s.id === id ? { ...s, ips: ips.toFixed(2), totalSks: sks } : s
+    );
+    setSemesters(updated);
     setEditingId(null);
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditData({});
+  const handleCancelEdit = () => { setEditingId(null); setEditData({}); };
+
+  const handleSkillChange = (key, value) => {
+    const clamped = Math.min(100, Math.max(0, parseInt(value) || 0));
+    setSkillPercentages(prev => ({ ...prev, [key]: clamped }));
   };
 
-  // Group courses by semester
-  const coursesBySemester = courses.reduce((acc, course) => {
-    if (!acc[course.semester]) {
-      acc[course.semester] = [];
-    }
-    acc[course.semester].push(course);
-    return acc;
-  }, {});
-
-  const sortedSemesters = Object.keys(coursesBySemester).sort((a, b) => parseInt(a) - parseInt(b));
-
-  // Radar Chart coordinates calculation
-  // Center is (150, 150), Max radius is 100
-  const maxRadius = 100;
-  const cx = 150;
-  const cy = 150;
-
-  // Axis lines
-  // North (UI/UX & Frontend), East (Backend), South (Data & AI), West (Logic & Algos)
-  const getCoordinates = (index, value) => {
-    const percent = value / 100;
-    const r = percent * maxRadius;
-    if (index === 0) return { x: cx, y: cy - r };         // UI/UX (North)
-    if (index === 1) return { x: cx + r, y: cy };         // Backend (East)
-    if (index === 2) return { x: cx, y: cy + r };         // Data & AI (South)
-    if (index === 3) return { x: cx - r, y: cy };         // Logic & Algos (West)
-    return { x: cx, y: cy };
+  const handleReset = () => {
+    if (window.confirm('Hapus semua data rapor semester?')) setSemesters([]);
   };
-
-  // Get points for polygon path
-  const p0 = getCoordinates(0, skills[0]?.score || 0);
-  const p1 = getCoordinates(1, skills[1]?.score || 0);
-  const p2 = getCoordinates(2, skills[2]?.score || 0);
-  const p3 = getCoordinates(3, skills[3]?.score || 0);
-
-  const polygonPath = `${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`;
 
   return (
     <div className="calculator-container tab-content">
       <div className="calculator-grid">
-        
-        {/* Left Panel: Inputs and List */}
+
+        {/* ===== LEFT PANEL: Semester IPS Input ===== */}
         <div className="calculator-card-section glass-panel">
           <div className="card-header-block">
             <BookOpen size={24} className="header-icon" />
-            <h2>Daftar Nilai Rapor Kuliah</h2>
+            <h2>Rapor IP Semester</h2>
           </div>
-          
           <p className="card-header-desc">
-            Masukkan mata kuliah Anda. Sistem akan memetakan bobot nilainya secara otomatis ke diagram radar kompetensi.
+            Masukkan IP (Indeks Prestasi) dan total SKS untuk setiap semester. IPK akan dihitung otomatis.
           </p>
 
-          <div className="semester-selector-block">
-            <label className="semester-label">Pilih Semester Aktif: </label>
-            <select className="semester-select" value={activeSemester} onChange={(e) => setActiveSemester(e.target.value)}>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-                <option key={s} value={s}>Semester {s}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="add-course-form batch-form">
-            {draftCourses.map((draft, idx) => (
-              <div key={draft.tempId} className="draft-row">
-                <div className="draft-row-header">
-                  <span className="draft-number">Mata Kuliah #{idx + 1}</span>
-                  {draftCourses.length > 1 && (
-                    <button type="button" onClick={() => handleRemoveDraftRow(draft.tempId)} className="remove-draft-btn">
-                      <Trash2 size={14} /> Hapus
-                    </button>
-                  )}
-                </div>
-                <div className="form-group row-name">
-                  <input 
-                    type="text" 
-                    placeholder="Nama Mata Kuliah (Kosongkan jika tak perlu)" 
-                    value={draft.name}
-                    onChange={(e) => handleDraftChange(draft.tempId, 'name', e.target.value)}
-                  />
-                </div>
-                <div className="form-row-three">
-                  <div className="form-group">
-                    <label>SKS</label>
-                    <select value={draft.sks} onChange={(e) => handleDraftChange(draft.tempId, 'sks', e.target.value)}>
-                      {[1, 2, 3, 4, 5, 6].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Nilai</label>
-                    <select value={draft.grade} onChange={(e) => handleDraftChange(draft.tempId, 'grade', e.target.value)}>
-                      {Object.keys(gradeValues).map(g => <option key={g} value={g}>{g}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Kategori</label>
-                    <select value={draft.category} onChange={(e) => handleDraftChange(draft.tempId, 'category', e.target.value)}>
-                      <option value="UI/UX & Frontend">UI/UX & FE</option>
-                      <option value="Backend & Infrastructure">Backend</option>
-                      <option value="Data Science & AI">Data & AI</option>
-                      <option value="Logic & Algorithms">Logic</option>
-                      <option value="Projek Capstone (Semua IT)">Projek Capstone (Semua IT)</option>
-                      <option value="Lainnya / Umum">Lainnya / Umum</option>
-                    </select>
-                  </div>
-                </div>
+          {/* Add form */}
+          <div className="semester-input-form">
+            <div className="semester-input-row">
+              <div className="form-group">
+                <label>Semester ke-</label>
+                <input
+                  type="number"
+                  min="1" max="8"
+                  placeholder="cth: 1"
+                  value={draftNumber}
+                  onChange={(e) => setDraftNumber(e.target.value)}
+                  className="sem-input"
+                />
               </div>
-            ))}
-            
-            <div className="batch-actions">
-              <button type="button" onClick={handleAddDraftRow} className="outline-btn add-row-btn">
-                <Plus size={16} /> Tambah Baris
-              </button>
-              <button type="button" onClick={handleSaveSemester} className="glow-btn save-semester-btn">
-                Simpan Rapor Semester {activeSemester}
-              </button>
+              <div className="form-group">
+                <label>IPS</label>
+                <input
+                  type="number"
+                  min="0" max="4" step="0.01"
+                  placeholder="cth: 3.75"
+                  value={draftIps}
+                  onChange={(e) => setDraftIps(e.target.value)}
+                  className="sem-input"
+                />
+              </div>
+              <div className="form-group">
+                <label>Total SKS</label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="cth: 22"
+                  value={draftSks}
+                  onChange={(e) => setDraftSks(e.target.value)}
+                  className="sem-input"
+                />
+              </div>
             </div>
+            <button onClick={handleAddSemester} className="glow-btn add-btn">
+              <Plus size={16} /> Tambah Semester
+            </button>
           </div>
 
+          {/* Semesters list */}
           <div className="courses-table-container">
             <div className="table-header">
-              <span>Mata Kuliah ({courses.length})</span>
-              <button onClick={handleReset} className="reset-btn-link" title="Kosongkan transkrip nilai">
-                <Trash2 size={14} /> Kosongkan Rapor
-              </button>
+              <span>Data Semester ({semesters.length})</span>
+              {semesters.length > 0 && (
+                <button onClick={handleReset} className="reset-btn-link">
+                  <Trash2 size={14} /> Hapus Semua
+                </button>
+              )}
             </div>
-            {courses.length === 0 ? (
+
+            {semesters.length === 0 ? (
               <div className="empty-state">
-                <p>Belum ada mata kuliah yang diinput.</p>
+                <p>Belum ada data semester. Tambahkan data IP semester Anda.</p>
               </div>
             ) : (
               <div className="courses-list">
-                {sortedSemesters.map(semester => {
-                  const semCourses = coursesBySemester[semester];
-                  let totalPoints = 0;
-                  let totalSks = 0;
-                  semCourses.forEach(c => {
-                    const gradeVal = gradeValues[c.grade] ?? 0.0;
-                    totalPoints += gradeVal * c.sks;
-                    totalSks += c.sks;
-                  });
-                  const ips = totalSks > 0 ? (totalPoints / totalSks) : 0.0;
-
-                  return (
-                    <div key={semester} className="semester-group">
-                      <div className="semester-title-wrapper">
-                        <h3 className="semester-title">Semester {semester}</h3>
-                        <span className="semester-ips">IPS: {ips.toFixed(2)}</span>
+                {semesters.map((sem) => (
+                  editingId === sem.id ? (
+                    // EDIT MODE
+                    <div key={sem.id} className="semester-record-row editing">
+                      <div className="edit-fields">
+                        <div className="edit-selects">
+                          <div className="form-group">
+                            <label>IPS</label>
+                            <input
+                              type="number" min="0" max="4" step="0.01"
+                              className="edit-input"
+                              value={editData.ips}
+                              onChange={(e) => setEditData(p => ({ ...p, ips: e.target.value }))}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Total SKS</label>
+                            <input
+                              type="number" min="1"
+                              className="edit-input"
+                              value={editData.totalSks}
+                              onChange={(e) => setEditData(p => ({ ...p, totalSks: e.target.value }))}
+                            />
+                          </div>
+                        </div>
                       </div>
-                      {semCourses.map((course) => (
-                        editingId === course.id ? (
-                          // EDIT MODE
-                          <div key={course.id} className="course-item-row editing">
-                            <div className="edit-fields">
-                              <input
-                                className="edit-input"
-                                type="text"
-                                value={editData.name}
-                                onChange={(e) => handleEditChange('name', e.target.value)}
-                                placeholder="Nama Mata Kuliah"
-                              />
-                              <div className="edit-selects">
-                                <select className="edit-select" value={editData.sks} onChange={(e) => handleEditChange('sks', e.target.value)}>
-                                  {[1,2,3,4,5,6].map(s => <option key={s} value={s}>{s} SKS</option>)}
-                                </select>
-                                <select className="edit-select" value={editData.grade} onChange={(e) => handleEditChange('grade', e.target.value)}>
-                                  {Object.keys(gradeValues).map(g => <option key={g} value={g}>{g}</option>)}
-                                </select>
-                                <select className="edit-select" value={editData.category} onChange={(e) => handleEditChange('category', e.target.value)}>
-                                  <option value="UI/UX & Frontend">UI/UX & FE</option>
-                                  <option value="Backend & Infrastructure">Backend</option>
-                                  <option value="Data Science & AI">Data & AI</option>
-                                  <option value="Logic & Algorithms">Logic</option>
-                                  <option value="Projek Capstone (Semua IT)">Capstone</option>
-                                  <option value="Lainnya / Umum">Lainnya</option>
-                                </select>
-                              </div>
-                            </div>
-                            <div className="edit-actions">
-                              <button onClick={() => handleSaveEdit(course.id)} className="edit-save-btn" title="Simpan">
-                                <Check size={16} />
-                              </button>
-                              <button onClick={handleCancelEdit} className="edit-cancel-btn" title="Batal">
-                                <X size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          // VIEW MODE
-                          <div key={course.id} className="course-item-row">
-                            <div className="course-info">
-                              <span className="course-title">{course.name}</span>
-                              <div className="course-meta">
-                                <span className="meta-badge category">{course.category}</span>
-                                <span className="meta-badge sks">{course.sks} SKS</span>
-                              </div>
-                            </div>
-                            <div className="course-grade-actions">
-                              <span className={`grade-badge ${course.grade.charAt(0)}`}>{course.grade}</span>
-                              <button
-                                onClick={() => handleStartEdit(course)}
-                                className="edit-course-btn"
-                                title="Edit"
-                              >
-                                <Pencil size={15} />
-                              </button>
-                              <button 
-                                onClick={() => handleDeleteCourse(course.id)} 
-                                className="delete-course-btn"
-                                title="Hapus"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      ))}
+                      <div className="edit-actions">
+                        <button onClick={() => handleSaveEdit(sem.id)} className="edit-save-btn" title="Simpan">
+                          <Check size={16} />
+                        </button>
+                        <button onClick={handleCancelEdit} className="edit-cancel-btn" title="Batal">
+                          <X size={16} />
+                        </button>
+                      </div>
                     </div>
-                  );
-                })}
+                  ) : (
+                    // VIEW MODE
+                    <div key={sem.id} className="semester-record-row">
+                      <div className="semester-record-info">
+                        <span className="sem-number-badge">Semester {sem.number}</span>
+                        <div className="semester-record-meta">
+                          <span className="meta-badge sks">{sem.totalSks} SKS</span>
+                        </div>
+                      </div>
+                      <div className="semester-record-right">
+                        <span className="sem-ips-large">{parseFloat(sem.ips).toFixed(2)}</span>
+                        <div className="course-grade-actions">
+                          <button onClick={() => handleStartEdit(sem)} className="edit-course-btn" title="Edit">
+                            <Pencil size={15} />
+                          </button>
+                          <button onClick={() => handleDeleteSemester(sem.id)} className="delete-course-btn" title="Hapus">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Panel: GPA and Skill Visualization */}
+        {/* ===== RIGHT PANEL: IPK + Skill Sliders ===== */}
         <div className="calculator-visuals-section">
-          
-          {/* IPK Dashboard Card */}
+
+          {/* IPK Card */}
           <div className="glass-panel summary-gpa-card">
             <div className="summary-gpa-header">
               <div>
@@ -326,80 +229,57 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
               <span className="val-max">/ 4.00</span>
             </div>
             <div className="gpa-description-text">
-              {gpa >= 3.51 ? 'Predikat Kelulusan: Dengan Pujian (Cum Laude) 🌟' : 
-               gpa >= 3.00 ? 'Predikat Kelulusan: Sangat Memuaskan 👍' : 
-               gpa >= 2.00 ? 'Predikat Kelulusan: Memuaskan' : 
+              {gpa >= 3.51 ? 'Predikat Kelulusan: Dengan Pujian (Cum Laude) 🌟' :
+               gpa >= 3.00 ? 'Predikat Kelulusan: Sangat Memuaskan 👍' :
+               gpa >= 2.00 ? 'Predikat Kelulusan: Memuaskan' :
+               semesters.length === 0 ? 'Belum ada data semester.' :
                'Status Akademik: Perlu Peningkatan'}
             </div>
           </div>
 
-          {/* Radar Chart Card */}
+          {/* Skill Percentages Card */}
           <div className="glass-panel radar-chart-card">
             <div className="card-header-block">
               <BarChart2 size={22} className="header-icon" />
-              <h3>Diagram Radar Kompetensi</h3>
+              <h3>Kompetensi Keahlian</h3>
             </div>
-            <p className="card-header-desc">Analisis kecenderungan keahlian teknis berdasarkan rata-rata bobot mata kuliah.</p>
-            
-            <div className="radar-visualization-container">
-              <svg width="300" height="300" className="radar-svg">
-                {/* Background Concentric Grid Lines (0%, 25%, 50%, 75%, 100%) */}
-                {[25, 50, 75, 100].map((radiusPercent) => {
-                  const r = (radiusPercent / 100) * maxRadius;
-                  return (
-                    <polygon 
-                      key={radiusPercent}
-                      points={`150,${150-r} ${150+r},150 150,${150+r} 150-${r},150`}
-                      className="radar-grid-line"
-                    />
-                  );
-                })}
-                
-                {/* Axis lines */}
-                <line x1="150" y1="50" x2="150" y2="250" className="radar-axis-line" />
-                <line x1="50" y1="150" x2="250" y2="150" className="radar-axis-line" />
+            <p className="card-header-desc">Atur persentase keahlian Anda secara manual untuk setiap bidang.</p>
 
-                {/* Plot Area Polygon with glow */}
-                {courses.length > 0 && (
-                  <>
-                    <polygon 
-                      points={polygonPath}
-                      className="radar-polygon-glow"
-                    />
-                    <polygon 
-                      points={polygonPath}
-                      className="radar-polygon"
-                    />
-                  </>
-                )}
-
-                {/* Markers / Dots at Vertices */}
-                {courses.length > 0 && [p0, p1, p2, p3].map((p, idx) => (
-                  <circle key={idx} cx={p.x} cy={p.y} r="5" className={`radar-vertex-dot dot-${idx}`} />
-                ))}
-
-                {/* Axis Labels */}
-                <text x="150" y="32" textAnchor="middle" className="axis-label top">UI/UX & FE</text>
-                <text x="260" y="154" textAnchor="start" className="axis-label right">Backend</text>
-                <text x="150" y="278" textAnchor="middle" className="axis-label bottom">Data & AI</text>
-                <text x="40" y="154" textAnchor="end" className="axis-label left">Algorithms</text>
-              </svg>
-            </div>
-
-            {/* List detailing each Category average */}
-            <div className="skills-score-list">
-              {skills.map((skill, index) => {
-                const colors = ['#00f2fe', '#4facfe', '#a18cd1', '#fbc2eb'];
+            <div className="skill-sliders-list">
+              {SKILL_CATEGORIES.map((cat) => {
+                const val = skillPercentages[cat.key] ?? 0;
                 return (
-                  <div key={skill.name} className="skill-score-row">
-                    <div className="skill-score-info">
-                      <span className="skill-dot" style={{ backgroundColor: colors[index] }}></span>
-                      <span className="skill-score-name">{skill.name}</span>
+                  <div key={cat.key} className="skill-slider-item">
+                    <div className="skill-slider-header">
+                      <div className="skill-score-info">
+                        <span className="skill-dot" style={{ backgroundColor: cat.color }}></span>
+                        <span className="skill-score-name">{cat.label}</span>
+                      </div>
+                      <div className="skill-pct-input-wrap">
+                        <input
+                          type="number"
+                          min="0" max="100"
+                          value={val}
+                          onChange={(e) => handleSkillChange(cat.key, e.target.value)}
+                          className="skill-pct-input"
+                        />
+                        <span className="skill-pct-unit">%</span>
+                      </div>
                     </div>
-                    <div className="skill-score-val">
-                      <span className="val-text">{skill.score.toFixed(0)}%</span>
-                      <span className="val-desc">(Rata-rata IPK: {skill.gpaAverage.toFixed(2)})</span>
+                    <div className="skill-bar-track">
+                      <div
+                        className="skill-bar-fill"
+                        style={{ width: `${val}%`, backgroundColor: cat.color }}
+                      ></div>
                     </div>
+                    <input
+                      type="range"
+                      min="0" max="100"
+                      value={val}
+                      onChange={(e) => handleSkillChange(cat.key, e.target.value)}
+                      className="skill-slider"
+                      style={{ '--slider-color': cat.color }}
+                    />
                   </div>
                 );
               })}
@@ -407,7 +287,6 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
           </div>
 
         </div>
-
       </div>
     </div>
   );
