@@ -230,13 +230,29 @@
   gap: 10px;
 }
 
+.semester-title-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+}
+
 .semester-title {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--primary);
-  margin-bottom: 4px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.semester-ips {
+  font-size: 0.85rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  background: rgba(0, 242, 254, 0.1);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .course-item-row {

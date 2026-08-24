@@ -192,32 +192,47 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
               </div>
             ) : (
               <div className="courses-list">
-                {sortedSemesters.map(semester => (
-                  <div key={semester} className="semester-group">
-                    <h3 className="semester-title">Semester {semester}</h3>
-                    {coursesBySemester[semester].map((course) => (
-                      <div key={course.id} className="course-item-row">
-                        <div className="course-info">
-                          <span className="course-title">{course.name}</span>
-                          <div className="course-meta">
-                            <span className="meta-badge category">{course.category}</span>
-                            <span className="meta-badge sks">{course.sks} SKS</span>
+                {sortedSemesters.map(semester => {
+                  const semCourses = coursesBySemester[semester];
+                  let totalPoints = 0;
+                  let totalSks = 0;
+                  semCourses.forEach(c => {
+                    const gradeVal = gradeValues[c.grade] ?? 0.0;
+                    totalPoints += gradeVal * c.sks;
+                    totalSks += c.sks;
+                  });
+                  const ips = totalSks > 0 ? (totalPoints / totalSks) : 0.0;
+
+                  return (
+                    <div key={semester} className="semester-group">
+                      <div className="semester-title-wrapper">
+                        <h3 className="semester-title">Semester {semester}</h3>
+                        <span className="semester-ips">IPS: {ips.toFixed(2)}</span>
+                      </div>
+                      {semCourses.map((course) => (
+                        <div key={course.id} className="course-item-row">
+                          <div className="course-info">
+                            <span className="course-title">{course.name}</span>
+                            <div className="course-meta">
+                              <span className="meta-badge category">{course.category}</span>
+                              <span className="meta-badge sks">{course.sks} SKS</span>
+                            </div>
+                          </div>
+                          <div className="course-grade-actions">
+                            <span className={`grade-badge ${course.grade.charAt(0)}`}>{course.grade}</span>
+                            <button 
+                              onClick={() => handleDeleteCourse(course.id)} 
+                              className="delete-course-btn"
+                              title="Hapus"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </div>
                         </div>
-                        <div className="course-grade-actions">
-                          <span className={`grade-badge ${course.grade.charAt(0)}`}>{course.grade}</span>
-                          <button 
-                            onClick={() => handleDeleteCourse(course.id)} 
-                            className="delete-course-btn"
-                            title="Hapus"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
