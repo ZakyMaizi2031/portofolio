@@ -7,6 +7,7 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
   const [newCourseSks, setNewCourseSks] = useState(3);
   const [newCourseGrade, setNewCourseGrade] = useState('A');
   const [newCourseCategory, setNewCourseCategory] = useState('UI/UX & Frontend');
+  const [newCourseSemester, setNewCourseSemester] = useState('1');
 
   const gradeValues = {
     'A': 4.0,
@@ -29,7 +30,8 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
       name: newCourseName.trim(),
       sks: parseInt(newCourseSks),
       grade: newCourseGrade,
-      category: newCourseCategory
+      category: newCourseCategory,
+      semester: newCourseSemester
     };
 
     setCourses([...courses, newCourse]);
@@ -45,6 +47,17 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
       setCourses([]);
     }
   };
+
+  // Group courses by semester
+  const coursesBySemester = courses.reduce((acc, course) => {
+    if (!acc[course.semester]) {
+      acc[course.semester] = [];
+    }
+    acc[course.semester].push(course);
+    return acc;
+  }, {});
+
+  const sortedSemesters = Object.keys(coursesBySemester).sort((a, b) => parseInt(a) - parseInt(b));
 
   // Radar Chart coordinates calculation
   // Center is (150, 150), Max radius is 100
@@ -101,6 +114,15 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
             
             <div className="form-row-three">
               <div className="form-group">
+                <label>Semester</label>
+                <select value={newCourseSemester} onChange={(e) => setNewCourseSemester(e.target.value)}>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                    <option key={s} value={s}>Semester {s}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label>SKS</label>
                 <select value={newCourseSks} onChange={(e) => setNewCourseSks(e.target.value)}>
                   <option value={1}>1</option>
@@ -115,7 +137,7 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
                 <label>Nilai</label>
                 <select value={newCourseGrade} onChange={(e) => setNewCourseGrade(e.target.value)}>
                   {Object.keys(gradeValues).map(g => (
-                    <option key={g} value={g}>{g} (Bobot: {gradeValues[g].toFixed(1)})</option>
+                    <option key={g} value={g}>{g}</option>
                   ))}
                 </select>
               </div>
@@ -123,10 +145,10 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
               <div className="form-group">
                 <label>Pemetaan Kategori</label>
                 <select value={newCourseCategory} onChange={(e) => setNewCourseCategory(e.target.value)}>
-                  <option value="UI/UX & Frontend">UI/UX & Frontend</option>
-                  <option value="Backend & Infrastructure">Backend & Infrastructure</option>
-                  <option value="Data Science & AI">Data Science & AI</option>
-                  <option value="Logic & Algorithms">Logic & Algorithms</option>
+                  <option value="UI/UX & Frontend">UI/UX & FE</option>
+                  <option value="Backend & Infrastructure">Backend</option>
+                  <option value="Data Science & AI">Data & AI</option>
+                  <option value="Logic & Algorithms">Logic</option>
                 </select>
               </div>
             </div>
@@ -149,25 +171,30 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
               </div>
             ) : (
               <div className="courses-list">
-                {courses.map((course) => (
-                  <div key={course.id} className="course-item-row">
-                    <div className="course-info">
-                      <span className="course-title">{course.name}</span>
-                      <div className="course-meta">
-                        <span className="meta-badge category">{course.category}</span>
-                        <span className="meta-badge sks">{course.sks} SKS</span>
+                {sortedSemesters.map(semester => (
+                  <div key={semester} className="semester-group">
+                    <h3 className="semester-title">Semester {semester}</h3>
+                    {coursesBySemester[semester].map((course) => (
+                      <div key={course.id} className="course-item-row">
+                        <div className="course-info">
+                          <span className="course-title">{course.name}</span>
+                          <div className="course-meta">
+                            <span className="meta-badge category">{course.category}</span>
+                            <span className="meta-badge sks">{course.sks} SKS</span>
+                          </div>
+                        </div>
+                        <div className="course-grade-actions">
+                          <span className={`grade-badge ${course.grade.charAt(0)}`}>{course.grade}</span>
+                          <button 
+                            onClick={() => handleDeleteCourse(course.id)} 
+                            className="delete-course-btn"
+                            title="Hapus"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="course-grade-actions">
-                      <span className={`grade-badge ${course.grade.charAt(0)}`}>{course.grade}</span>
-                      <button 
-                        onClick={() => handleDeleteCourse(course.id)} 
-                        className="delete-course-btn"
-                        title="Hapus"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                    ))}
                   </div>
                 ))}
               </div>

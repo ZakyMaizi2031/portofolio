@@ -131,10 +131,25 @@
 .courses-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   max-height: 400px;
   overflow-y: auto;
   padding-right: 4px;
+}
+
+.semester-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.semester-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .course-item-row {
