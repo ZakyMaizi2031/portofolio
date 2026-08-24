@@ -94,7 +94,9 @@ function App() {
     ];
 
     return categories.map(cat => {
-      const catCourses = courses.filter(c => c.category === cat);
+      const catCourses = courses.filter(c => 
+        c.category === cat || c.category === 'Projek Capstone (Semua IT)'
+      );
       if (catCourses.length === 0) {
         return { name: cat, score: 0, gpaAverage: 0, courses: [] };
       }
