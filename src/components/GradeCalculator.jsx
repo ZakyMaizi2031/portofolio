@@ -9,8 +9,8 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
   ]);
 
   const gradeValues = {
-    'A': 4.0, 'A-': 3.7, 'B+': 3.5, 'B': 3.0, 'B-': 2.7,
-    'C+': 2.5, 'C': 2.0, 'D': 1.0, 'E': 0.0
+    'A': 4.00, 'A-': 3.75, 'B+': 3.50, 'B': 3.00, 'B-': 2.75,
+    'C+': 2.50, 'C': 2.00, 'D': 1.00, 'E': 0.00
   };
 
   const handleAddDraftRow = () => {
