@@ -149,6 +149,7 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
                   <option value="Backend & Infrastructure">Backend</option>
                   <option value="Data Science & AI">Data & AI</option>
                   <option value="Logic & Algorithms">Logic</option>
+                  <option value="Lainnya / Umum">Lainnya / Umum</option>
                 </select>
               </div>
             </div>
