@@ -3,39 +3,53 @@ import { Plus, Trash2, RefreshCw, BarChart2, Star, Sparkles, BookOpen } from 'lu
 import './GradeCalculator.css';
 
 const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
-  const [newCourseName, setNewCourseName] = useState('');
-  const [newCourseSks, setNewCourseSks] = useState(3);
-  const [newCourseGrade, setNewCourseGrade] = useState('A');
-  const [newCourseCategory, setNewCourseCategory] = useState('UI/UX & Frontend');
-  const [newCourseSemester, setNewCourseSemester] = useState('1');
+  const [activeSemester, setActiveSemester] = useState('1');
+  const [draftCourses, setDraftCourses] = useState([
+    { tempId: Date.now(), name: '', sks: 3, grade: 'A', category: 'UI/UX & Frontend' }
+  ]);
 
   const gradeValues = {
-    'A': 4.0,
-    'A-': 3.7,
-    'B+': 3.5,
-    'B': 3.0,
-    'B-': 2.7,
-    'C+': 2.5,
-    'C': 2.0,
-    'D': 1.0,
-    'E': 0.0
+    'A': 4.0, 'A-': 3.7, 'B+': 3.5, 'B': 3.0, 'B-': 2.7,
+    'C+': 2.5, 'C': 2.0, 'D': 1.0, 'E': 0.0
   };
 
-  const handleAddCourse = (e) => {
-    e.preventDefault();
-    if (!newCourseName.trim()) return;
+  const handleAddDraftRow = () => {
+    setDraftCourses([...draftCourses, { tempId: Date.now(), name: '', sks: 3, grade: 'A', category: 'UI/UX & Frontend' }]);
+  };
 
-    const newCourse = {
-      id: Date.now(),
-      name: newCourseName.trim(),
-      sks: parseInt(newCourseSks),
-      grade: newCourseGrade,
-      category: newCourseCategory,
-      semester: newCourseSemester
-    };
+  const handleDraftChange = (id, field, value) => {
+    setDraftCourses(draftCourses.map(c => c.tempId === id ? { ...c, [field]: value } : c));
+  };
 
-    setCourses([...courses, newCourse]);
-    setNewCourseName('');
+  const handleRemoveDraftRow = (id) => {
+    if (draftCourses.length > 1) {
+      setDraftCourses(draftCourses.filter(c => c.tempId !== id));
+    }
+  };
+
+  const handleSaveSemester = () => {
+    const validCourses = draftCourses.filter(c => c.name.trim() !== '');
+    if (validCourses.length === 0) {
+      alert("Harap isi nama mata kuliah sebelum menyimpan.");
+      return;
+    }
+
+    const newCourses = validCourses.map((c, index) => ({
+      id: Date.now() + index,
+      name: c.name.trim(),
+      sks: parseInt(c.sks),
+      grade: c.grade,
+      category: c.category,
+      semester: activeSemester
+    }));
+
+    setCourses([...courses, ...newCourses]);
+    setDraftCourses([{ tempId: Date.now(), name: '', sks: 3, grade: 'A', category: 'UI/UX & Frontend' }]);
+    
+    const nextSem = parseInt(activeSemester) + 1;
+    if (nextSem <= 8) {
+      setActiveSemester(nextSem.toString());
+    }
   };
 
   const handleDeleteCourse = (id) => {
@@ -43,7 +57,7 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
   };
 
   const handleReset = () => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus semua mata kuliah?')) {
+    if (window.confirm('Apakah Anda yakin ingin menghapus semua mata kuliah yang tersimpan?')) {
       setCourses([]);
     }
   };
@@ -100,65 +114,70 @@ const GradeCalculator = ({ courses, setCourses, gpa, skills }) => {
             Masukkan mata kuliah Anda. Sistem akan memetakan bobot nilainya secara otomatis ke diagram radar kompetensi.
           </p>
 
-          <form onSubmit={handleAddCourse} className="add-course-form">
-            <div className="form-group row-name">
-              <label>Nama Mata Kuliah</label>
-              <input 
-                type="text" 
-                placeholder="cth: Pemrograman Web Lanjut" 
-                value={newCourseName}
-                onChange={(e) => setNewCourseName(e.target.value)}
-                required
-              />
-            </div>
+          <div className="semester-selector-block">
+            <label className="semester-label">Pilih Semester Aktif: </label>
+            <select className="semester-select" value={activeSemester} onChange={(e) => setActiveSemester(e.target.value)}>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                <option key={s} value={s}>Semester {s}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="add-course-form batch-form">
+            {draftCourses.map((draft, idx) => (
+              <div key={draft.tempId} className="draft-row">
+                <div className="draft-row-header">
+                  <span className="draft-number">Mata Kuliah #{idx + 1}</span>
+                  {draftCourses.length > 1 && (
+                    <button type="button" onClick={() => handleRemoveDraftRow(draft.tempId)} className="remove-draft-btn">
+                      <Trash2 size={14} /> Hapus
+                    </button>
+                  )}
+                </div>
+                <div className="form-group row-name">
+                  <input 
+                    type="text" 
+                    placeholder="Nama Mata Kuliah (Kosongkan jika tak perlu)" 
+                    value={draft.name}
+                    onChange={(e) => handleDraftChange(draft.tempId, 'name', e.target.value)}
+                  />
+                </div>
+                <div className="form-row-three">
+                  <div className="form-group">
+                    <label>SKS</label>
+                    <select value={draft.sks} onChange={(e) => handleDraftChange(draft.tempId, 'sks', e.target.value)}>
+                      {[1, 2, 3, 4, 5, 6].map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Nilai</label>
+                    <select value={draft.grade} onChange={(e) => handleDraftChange(draft.tempId, 'grade', e.target.value)}>
+                      {Object.keys(gradeValues).map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Kategori</label>
+                    <select value={draft.category} onChange={(e) => handleDraftChange(draft.tempId, 'category', e.target.value)}>
+                      <option value="UI/UX & Frontend">UI/UX & FE</option>
+                      <option value="Backend & Infrastructure">Backend</option>
+                      <option value="Data Science & AI">Data & AI</option>
+                      <option value="Logic & Algorithms">Logic</option>
+                      <option value="Lainnya / Umum">Lainnya / Umum</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ))}
             
-            <div className="form-row-three">
-              <div className="form-group">
-                <label>Semester</label>
-                <select value={newCourseSemester} onChange={(e) => setNewCourseSemester(e.target.value)}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-                    <option key={s} value={s}>Semester {s}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>SKS</label>
-                <select value={newCourseSks} onChange={(e) => setNewCourseSks(e.target.value)}>
-                  <option value={1}>1</option>
-                  <option value={2}>2</option>
-                  <option value={3}>3</option>
-                  <option value={4}>4</option>
-                  <option value={5}>5</option>
-                  <option value={6}>6</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Nilai</label>
-                <select value={newCourseGrade} onChange={(e) => setNewCourseGrade(e.target.value)}>
-                  {Object.keys(gradeValues).map(g => (
-                    <option key={g} value={g}>{g}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Pemetaan Kategori</label>
-                <select value={newCourseCategory} onChange={(e) => setNewCourseCategory(e.target.value)}>
-                  <option value="UI/UX & Frontend">UI/UX & FE</option>
-                  <option value="Backend & Infrastructure">Backend</option>
-                  <option value="Data Science & AI">Data & AI</option>
-                  <option value="Logic & Algorithms">Logic</option>
-                  <option value="Lainnya / Umum">Lainnya / Umum</option>
-                </select>
-              </div>
+            <div className="batch-actions">
+              <button type="button" onClick={handleAddDraftRow} className="outline-btn add-row-btn">
+                <Plus size={16} /> Tambah Baris
+              </button>
+              <button type="button" onClick={handleSaveSemester} className="glow-btn save-semester-btn">
+                Simpan Rapor Semester {activeSemester}
+              </button>
             </div>
-
-            <button type="submit" className="glow-btn add-btn">
-              <Plus size={16} /> Add Mata Kuliah
-            </button>
-          </form>
+          </div>
 
           <div className="courses-table-container">
             <div className="table-header">

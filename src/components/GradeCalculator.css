@@ -37,14 +37,108 @@
   padding: 32px !important;
 }
 
-/* Add course form */
-.add-course-form {
+/* Add course batch form */
+.semester-selector-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.semester-label {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.semester-select {
+  background: rgba(31, 34, 41, 0.9);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  outline: none;
+}
+
+.batch-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.draft-row {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.draft-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.draft-number {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.remove-draft-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.remove-draft-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.batch-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.outline-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.outline-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.save-semester-btn {
+  padding: 12px 24px !important;
+  font-size: 0.95rem !important;
 }
 
 .form-group {
@@ -90,13 +184,6 @@
   }
 }
 
-.add-btn {
-  align-self: flex-start;
-  padding: 10px 20px !important;
-  font-size: 0.9rem !important;
-}
-
-/* Courses list */
 .courses-table-container {
   display: flex;
   flex-direction: column;
