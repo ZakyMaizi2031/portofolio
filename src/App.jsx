@@ -54,7 +54,7 @@ function App() {
 
   // --- CV state ---
   const [cvData, setCvData] = useState(() => {
-    const saved = localStorage.getItem('porto_cv_v3');
+    const saved = localStorage.getItem('porto_cv_v4');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* ignore */ }
     }
@@ -71,7 +71,7 @@ function App() {
   }, [skillPercentages]);
 
   useEffect(() => {
-    localStorage.setItem('porto_cv_v3', JSON.stringify(cvData));
+    localStorage.setItem('porto_cv_v4', JSON.stringify(cvData));
   }, [cvData]);
 
   // --- IPK = Σ(IPS × TotalSKS) / Σ(TotalSKS) ---
