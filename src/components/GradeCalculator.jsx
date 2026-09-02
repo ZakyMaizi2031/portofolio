@@ -3,10 +3,10 @@ import { Plus, Trash2, Sparkles, BarChart2, BookOpen, Pencil, Check, X } from 'l
 import './GradeCalculator.css';
 
 const SKILL_CATEGORIES = [
-  { key: 'UI/UX & Frontend', label: 'UI/UX & Frontend', color: '#00f2fe' },
-  { key: 'Backend & Infrastructure', label: 'Backend & Infrastructure', color: '#4facfe' },
-  { key: 'Data Science & AI', label: 'Data Science & AI', color: '#a18cd1' },
-  { key: 'Logic & Algorithms', label: 'Logic & Algorithms', color: '#fbc2eb' },
+  { key: 'UI/UX & Frontend', label: 'UI/UX & Frontend', color: '#4f8ef7' },
+  { key: 'Backend & Infrastructure', label: 'Backend & Infrastructure', color: '#818cf8' },
+  { key: 'Data Science & AI', label: 'Data Science & AI', color: '#34d399' },
+  { key: 'Logic & Algorithms', label: 'Logic & Algorithms', color: '#f59e0b' },
 ];
 
 const GradeCalculator = ({
